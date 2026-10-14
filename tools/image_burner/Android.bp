@@ -1,0 +1,51 @@
+// Copyright 2026 The Kemu Authors
+// SPDX-License-Identifier: Apache-2.0
+cc_defaults {
+    name: "kemu_image_burner_defaults",
+    srcs: ["common.cpp", "avb.cpp", "layout.cpp", "filesystem.cpp", "main.cpp"],
+    cpp_std: "c++17",
+    cflags: ["-Wall", "-Wextra", "-Werror", "-D_FILE_OFFSET_BITS=64"],
+    cppflags: ["-fexceptions"],
+    stl: "libc++_static",
+    static_libs: [
+        "liblp", "libavb", "libcrypto_utils", "libbase",
+        "libsparse", "libext4_utils", "libz", "libcutils", "libjsoncpp",
+        "libfec_rs",
+    ],
+}
+
+cc_binary {
+    name: "kemu_image_burner",
+    required: ["e2fsck", "resize2fs", "kemu_ext4_tool", "toybox"],
+    defaults: ["kemu_image_burner_defaults"],
+    compile_multilib: "64",
+    shared_libs: ["libcrypto", "liblog"],
+}
+
+cc_binary_host {
+    name: "kemu_image_burner_host",
+    defaults: ["kemu_image_burner_defaults"],
+    compile_multilib: "64",
+    static_libs: ["libcrypto", "liblog"],
+    target: { darwin: { enabled: false } },
+}
+
+cc_binary {
+    name: "kemu_ext4_tool",
+    licenses: ["kemu_ext4_tool_source_license"],
+    host_supported: true,
+    srcs: ["ext4_tool.cpp"],
+    cpp_std: "c++17",
+    cflags: ["-Wall", "-Wextra", "-Werror", "-D_FILE_OFFSET_BITS=64"],
+    cppflags: ["-fexceptions"],
+    stl: "libc++_static",
+    static_libs: ["libext2fs", "libext2_com_err", "libext2_uuid"],
+    compile_multilib: "64",
+    target: { darwin: { enabled: false } },
+}
+
+license {
+    name: "kemu_ext4_tool_source_license",
+    license_kinds: ["SPDX-license-identifier-MIT"],
+    license_text: ["LICENSE.ext4-tool"],
+}

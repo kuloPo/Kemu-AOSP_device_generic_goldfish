@@ -9,3 +9,7 @@ allow shell adbd:{ socket vsock_socket } rw_socket_perms_no_ioctl;
 
 # Allow shell to read qemu.sf.lcd_density for CTS.
 get_prop(shell, qemu_sf_lcd_density_prop)
+
+# The offline image burner invokes these helpers on shell-owned image files.
+# Stay in the shell domain; do not grant raw block-device or mount access.
+allow shell fsck_exec:file { r_file_perms execute execute_no_trans };

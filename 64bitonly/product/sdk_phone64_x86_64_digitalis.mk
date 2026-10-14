@@ -29,6 +29,10 @@ $(call inherit-product, device/generic/goldfish/64bitonly/product/sdk_phone64_x8
 
 $(call inherit-product, frameworks/libs/binary_translation/enable_arm64_to_x86_64.mk)
 
+# Offline image updater, installed in /system/bin by the regular product build.
+# Its required filesystem tools are included automatically.
+PRODUCT_PACKAGES += kemu_image_burner
+
 # Default the GLES driver to ANGLE (the libEGL_angle / libGLESv1_CM_angle /
 # libGLESv2_angle drivers already shipped by generic.mk) instead of gfxstream's
 # GLES emulation. ANGLE implements OpenGL ES on top of Vulkan, so GLES calls are
