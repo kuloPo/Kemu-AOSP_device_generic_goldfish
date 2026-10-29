@@ -6,7 +6,11 @@
 
 // Wire ABI shared with device/generic/goldfish/codecs/c2/encoders.
 namespace goldfish_encoder {
-constexpr uint32_t kVersion = 1;
+constexpr uint32_t kVersion = 2;
+// Submission and completion use separate cache lines in the parameter page.
+constexpr uint32_t kSequenceOffset = 128;
+constexpr uint32_t kCompletedSequenceOffset = 192;
+constexpr uint32_t kResponseOffset = 256;
 constexpr uint32_t kInputOffset = 4096;
 constexpr uint32_t kBufferCapacity = 16 * 1024 * 1024;
 constexpr uint32_t kOutputOffset = kInputOffset + kBufferCapacity;
@@ -15,9 +19,11 @@ constexpr uint32_t kNv12 = 0;
 constexpr uint32_t kRgba = 1;
 constexpr uint32_t kForceIdr = 1;
 constexpr int32_t kOk = 0;
+constexpr int32_t kPending = 1;
 constexpr int32_t kUnavailable = -1;
 constexpr int32_t kBadRequest = -2;
 constexpr int32_t kEncodeFailed = -3;
+constexpr int32_t kBusy = -4;
 
 struct Request {
   uint32_t version;
@@ -43,4 +49,7 @@ struct Request {
   uint64_t timestamp;
 };
 static_assert(sizeof(Request) == 88, "Encoder protocol layout changed");
+static_assert(sizeof(Request) <= kSequenceOffset, "Request overlaps sequence");
+static_assert(kResponseOffset + sizeof(Request) <= kInputOffset,
+              "Response exceeds parameter page");
 }  // namespace goldfish_encoder

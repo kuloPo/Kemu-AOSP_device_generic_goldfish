@@ -5,6 +5,8 @@
 #include <goldfish_address_space.h>
 
 #include <cstring>
+#include <chrono>
+#include <unistd.h>
 
 #include "GoldfishVideoEncoderDefs.h"
 
@@ -41,6 +43,7 @@ class GoldfishEncoderTransport {
       return false;
     }
     mConnected = true;
+    mSequence = 0;
     return true;
   }
 
@@ -48,11 +51,29 @@ class GoldfishEncoderTransport {
     if (!mConnected) return false;
     request.status = goldfish_encoder::kUnavailable;
     std::memcpy(mMemory, &request, sizeof(request));
+    if (!++mSequence) ++mSequence;
+    std::memcpy(mMemory + goldfish_encoder::kSequenceOffset, &mSequence,
+                sizeof(mSequence));
+    auto* completed = reinterpret_cast<uint32_t*>(
+        mMemory + goldfish_encoder::kCompletedSequenceOffset);
+    __atomic_store_n(completed, 0, __ATOMIC_RELEASE);
     address_space_ping ping = {};
     ping.metadata = (uint64_t(mCodec) << 56) | operation;
     ping.offset = mOffset;
     if (!goldfish_address_space_ping(mHandle, &ping)) return false;
     std::memcpy(&request, mMemory, sizeof(request));
+    if (request.status != goldfish_encoder::kPending) return false;
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(10);
+    while (__atomic_load_n(completed, __ATOMIC_ACQUIRE) != mSequence) {
+      if (std::chrono::steady_clock::now() >= deadline) {
+        // Do not reuse buffers while the host may still be accessing them.
+        mConnected = false;
+        request.status = goldfish_encoder::kUnavailable;
+        return false;
+      }
+      usleep(250);
+    }
+    std::memcpy(&request, mMemory + goldfish_encoder::kResponseOffset, sizeof(request));
     return request.status == goldfish_encoder::kOk;
   }
 
@@ -80,6 +101,7 @@ class GoldfishEncoderTransport {
 
  private:
   uint32_t mCodec;
+  uint32_t mSequence = 0;
   address_space_handle_t mHandle = -1;
   uint64_t mOffset = 0;
   uint8_t* mMemory = nullptr;
