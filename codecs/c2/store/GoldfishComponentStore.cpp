@@ -150,7 +150,7 @@ c2_status_t GoldfishComponentStore::ComponentModule::init(std::string libPath) {
             traits->rank = 8;
             break;
         default:
-            traits->rank = 512;
+            traits->rank = traits->kind == C2Component::KIND_ENCODER ? 128 : 512;
         }
 
         params.clear();
@@ -274,6 +274,12 @@ GoldfishComponentStore::GoldfishComponentStore()
     }
     if (useAndroidGoldfishComponentInstance("hevcdec")) {
         emplace("libcodec2_goldfish_hevcdec.so");
+    }
+    if (useAndroidGoldfishComponentInstance("avcenc")) {
+        emplace("libcodec2_goldfish_avcenc.so");
+    }
+    if (useAndroidGoldfishComponentInstance("hevcenc")) {
+        emplace("libcodec2_goldfish_hevcenc.so");
     }
 }
 

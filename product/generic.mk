@@ -93,6 +93,8 @@ PRODUCT_PACKAGES += \
     libcodec2_goldfish_vp9dec \
     libcodec2_goldfish_avcdec \
     libcodec2_goldfish_hevcdec \
+    libcodec2_goldfish_avcenc \
+    libcodec2_goldfish_hevcenc \
     sh_vendor \
     local_time.default \
     SdkSetup \

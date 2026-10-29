@@ -81,4 +81,28 @@
             <Feature name="dynamic-color-aspects" />
         </MediaCodec>
     </Decoders>
+    <Encoders>
+        <MediaCodec name="c2.goldfish.h264.encoder" type="video/avc">
+            <Limit name="size" min="160x64" max="2560x2560" />
+            <Limit name="alignment" value="2x2" />
+            <Limit name="block-size" value="16x16" />
+            <Limit name="block-count" range="40-25600" />
+            <Limit name="blocks-per-second" range="40-1536000" />
+            <Limit name="bitrate" range="64000-40000000" />
+            <Limit name="frame-rate" range="1-60" />
+            <Limit name="concurrent-instances" max="4" />
+            <Feature name="bitrate-modes" value="VBR,CBR" />
+        </MediaCodec>
+        <MediaCodec name="c2.goldfish.hevc.encoder" type="video/hevc">
+            <Limit name="size" min="160x64" max="2560x2560" />
+            <Limit name="alignment" value="2x2" />
+            <Limit name="block-size" value="16x16" />
+            <Limit name="block-count" range="40-25600" />
+            <Limit name="blocks-per-second" range="40-1536000" />
+            <Limit name="bitrate" range="64000-40000000" />
+            <Limit name="frame-rate" range="1-60" />
+            <Limit name="concurrent-instances" max="4" />
+            <Feature name="bitrate-modes" value="VBR,CBR" />
+        </MediaCodec>
+    </Encoders>
 </Included>

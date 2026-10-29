@@ -1,0 +1,28 @@
+package {
+    default_applicable_licenses: ["device_generic_goldfish_license"],
+}
+
+cc_defaults {
+    name: "libcodec2_goldfish_encoder-defaults",
+    vendor: true,
+    defaults: ["libcodec2_goldfish-defaults"],
+    srcs: ["C2GoldfishVideoEnc.cpp"],
+    shared_libs: ["libgoldfish_codec2_store"],
+    static_libs: [
+        "mesa_platform_virtgpu",
+        "mesa_goldfish_address_space",
+        "mesa_util",
+        "libyuv_static",
+    ],
+}
+
+cc_library_shared {
+    name: "libcodec2_goldfish_avcenc",
+    defaults: ["libcodec2_goldfish_encoder-defaults"],
+}
+
+cc_library_shared {
+    name: "libcodec2_goldfish_hevcenc",
+    defaults: ["libcodec2_goldfish_encoder-defaults"],
+    cflags: ["-DGOLDFISH_HEVC_ENCODER"],
+}
