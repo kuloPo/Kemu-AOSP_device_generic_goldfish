@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <cerrno>
 #include <mutex>
 #include <cutils/properties.h>
 #include <log/log.h>
@@ -108,6 +109,29 @@ unsigned readUnsignedProperty(const char *propName, const unsigned defaultValue)
     unsigned value;
     return (sscanf(propValue, "%u", &value) == 1) ? value : defaultValue;
 }
+
+int pcmError(const int result) {
+    // tinyalsa reports ioctl failures as -1 with errno, not -errno.
+    return result == -1 ? errno : -result;
+}
+
+bool pcmRetryAfterError(pcm_t *pcm, const int error, const int tries) {
+    if (tries <= 1) {
+        return false;
+    }
+    if (error == EAGAIN) {
+        return true;
+    }
+    if (error == EIO) {
+        // A timed-out virtio stream can remain RUNNING without making
+        // progress. Drop it before preparing, which rejects RUNNING.
+        if (::pcm_stop(pcm) == 0 && ::pcm_prepare(pcm) == 0) {
+            ALOGW("%s: restarted PCM stream after I/O error", __func__);
+            return true;
+        }
+    }
+    return false;
+}
 }  // namespace
 
 void init() {
@@ -197,31 +221,28 @@ int pcmRead(pcm_t *pcm, void *data, const int szBytes,
         return FAILURE(-1);
     }
 
+    if (!szBytes) {
+        return 0;
+    }
+
     const int szFrames = szBytes / frameSize;
-    int tries = 3;
-    while (true) {
+    for (int tries = 3; ; --tries) {
+        errno = 0;
         const int framesRead = ::pcm_readi(pcm, data, szFrames);
+        const int error = pcmError(framesRead);
         if (framesRead > 0) {
             LOG_ALWAYS_FATAL_IF(framesRead > szFrames,
                                 "framesRead=%d szFrames=%d szBytes=%u frameSize=%u",
                                 framesRead, szFrames, szBytes, frameSize);
             return framesRead * frameSize;
-        } else {
-            --tries;
-            switch (-framesRead) {
-            case EIO:
-            case EAGAIN:
-                if (tries > 0) {
-                    break;
-                }
-                [[fallthrough]];
-
-            default:
-                ALOGW("%s:%d pcm_readi failed with '%s' (%d)",
-                      __func__, __LINE__, ::pcm_get_error(pcm), framesRead);
-                return FAILURE(-1);
-            }
         }
+        if (pcmRetryAfterError(pcm, error, tries)) {
+            continue;
+        }
+
+        ALOGW("%s:%d pcm_readi failed with '%s' (%d, errno=%d)",
+              __func__, __LINE__, ::pcm_get_error(pcm), framesRead, error);
+        return FAILURE(-1);
     }
 }
 
@@ -234,32 +255,29 @@ int pcmWrite(pcm_t *pcm, const void *data, const int szBytes,
     if (!pcm) {
         return FAILURE(-1);
     }
+    if (!szBytes) {
+        return 0;
+    }
 
     const int szFrames = szBytes / frameSize;
-    int tries = 3;
-    while (true) {
+    for (int tries = 3; ; --tries) {
+        errno = 0;
         const int framesWritten = ::pcm_writei(pcm, data, szFrames);
+        const int error = pcmError(framesWritten);
         if (framesWritten > 0) {
             LOG_ALWAYS_FATAL_IF(framesWritten > szFrames,
                                 "framesWritten=%d szFrames=%d szBytes=%u frameSize=%u",
                                 framesWritten, szFrames, szBytes, frameSize);
             return framesWritten * frameSize;
-        } else {
-            --tries;
-            switch (-framesWritten) {
-            case EIO:
-            case EAGAIN:
-                if (tries > 0) {
-                    break;
-                }
-                [[fallthrough]];
-
-            default:
-                ALOGW("%s:%d pcm_writei failed with '%s' (%d)",
-                      __func__, __LINE__, ::pcm_get_error(pcm), framesWritten);
-                return FAILURE(-1);
-            }
         }
+
+        if (pcmRetryAfterError(pcm, error, tries)) {
+            continue;
+        }
+
+        ALOGW("%s:%d pcm_writei failed with '%s' (%d, errno=%d)",
+              __func__, __LINE__, ::pcm_get_error(pcm), framesWritten, error);
+        return FAILURE(-1);
     }
 }
 

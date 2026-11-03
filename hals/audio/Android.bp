@@ -116,3 +116,21 @@ cc_library_shared {
         "audio.bluetooth.default",
     ],
 }
+
+cc_test {
+    name: "ranchu_audio_pcm_tests",
+    vendor: true,
+    compile_multilib: "64",
+    srcs: ["talsa.cpp", "talsa_test.cpp"],
+    shared_libs: ["libtinyalsav2", "libcutils", "liblog"],
+    header_libs: ["libdebug.ranchu"],
+    cflags: ["-DCPP_VERSION=V7_1"],
+    ldflags: [
+        "-Wl,--wrap=pcm_writei",
+        "-Wl,--wrap=pcm_readi",
+        "-Wl,--wrap=pcm_stop",
+        "-Wl,--wrap=pcm_prepare",
+        "-Wl,--wrap=pcm_get_error",
+    ],
+    test_suites: ["device-tests"],
+}
