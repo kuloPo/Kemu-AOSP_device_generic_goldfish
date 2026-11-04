@@ -59,6 +59,17 @@ PRODUCT_VENDOR_PROPERTIES += \
 PRODUCT_VENDOR_PROPERTIES += \
     ro.opengles.version=196610
 
+# Report arm64-v8a in the deprecated ro.product.cpu.abi. The framework does not
+# read it (Build.CPU_ABI and the package manager use ro.product.cpu.abilist),
+# but host tools such as RenderDoc choose which Android package to install from
+# it and only ship ARM packages. The build-info section of /system/build.prop
+# and /product/etc/build.prop carries x86_64 from TARGET_CPU_ABI; this
+# assignment follows it in /product/etc/build.prop, the last file init loads,
+# so it wins at boot (the emu64xa board allows the duplicate). /system/build.prop,
+# which the emulator reads to select the guest architecture, keeps x86_64.
+PRODUCT_PRODUCT_PROPERTIES += \
+    ro.product.cpu.abi=arm64-v8a
+
 # Overrides
 PRODUCT_BRAND := Android
 PRODUCT_NAME := sdk_phone64_x86_64_digitalis

@@ -24,6 +24,11 @@ TARGET_NATIVE_BRIDGE_ARCH_VARIANT := armv8-a
 TARGET_NATIVE_BRIDGE_CPU_VARIANT := generic
 TARGET_NATIVE_BRIDGE_ABI := arm64-v8a
 
+# sdk_phone64_x86_64_digitalis sets ro.product.cpu.abi in /product/etc/build.prop,
+# which also holds the build-info value derived from TARGET_CPU_ABI. Allow the
+# duplicate; init applies the later assignment.
+BUILD_BROKEN_DUP_SYSPROP := true
+
 include device/generic/goldfish/board/BoardConfigCommon.mk
 
 BOARD_USERDATAIMAGE_PARTITION_SIZE := 576716800
