@@ -29,9 +29,6 @@ $(call inherit-product, device/generic/goldfish/64bitonly/product/sdk_phone64_x8
 
 $(call inherit-product, frameworks/libs/binary_translation/enable_arm64_to_x86_64.mk)
 
-# Use a paged application workspace for the Kemu product.
-DEVICE_PACKAGE_OVERLAYS += device/generic/goldfish/kemu/overlay
-
 # Offline image updater, installed in /system/bin by the regular product build.
 # Its required filesystem tools are included automatically.
 PRODUCT_PACKAGES += kemu_image_burner
