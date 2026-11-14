@@ -1,3 +1,6 @@
+on boot
+    hostname kemu
+
 on property:init.svc.ranchu-adb-setup=stopped
     start adbd
 

@@ -71,7 +71,8 @@ PRODUCT_PRODUCT_PROPERTIES += \
     ro.product.cpu.abi=arm64-v8a
 
 # Overrides
-PRODUCT_BRAND := Android
+PRODUCT_BRAND := Kemu
 PRODUCT_NAME := sdk_phone64_x86_64_digitalis
 PRODUCT_DEVICE := emu64xa
-PRODUCT_MODEL := Android SDK built for x86_64 with ARM64 translated (Digitalis)
+PRODUCT_MODEL := Kemu
+PRODUCT_MANUFACTURER := Kemu
