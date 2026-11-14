@@ -18,8 +18,6 @@
 -->
 
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <!-- Restricting eth0 -->
-    <string-array translatable="false" name="config_ethernet_interfaces">
-        <item>eth0;11,12,14;;</item>
-    </string-array>
+    <!-- Use the default Ethernet capabilities for unrestricted Internet access. -->
+    <string-array translatable="false" name="config_ethernet_interfaces" />
 </resources>
